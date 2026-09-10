@@ -22,3 +22,4 @@ mongoose.connect(process.env.MONGO_URI).then(async()=>{
 
   app.listen(5000,()=>console.log("Server running on http://localhost:5000"));
 }).catch(e=>console.error("MongoDB connection failed:",e));
+module.exports = app;

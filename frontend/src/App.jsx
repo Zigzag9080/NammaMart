@@ -88,7 +88,7 @@ function App() {
 
   const loadMyProducts = async () => {
     try {
-      const r = await fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/products/seller/my", { headers: authHeaders() });
+      const r = await fetch("https://nammamart-tau.vercel.app", { headers: authHeaders() });
       if (r.ok) {
         const d = await r.json();
         setSellerProducts(d.map((p) => ({ ...p, id: p._id })));

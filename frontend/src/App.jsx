@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 
 import "./App.css";
+const API = "http://localhost:5000";
 const shops = [
   { id: 1, name: "Malar Crafts", category: "Handmade & Gifts", rating: 4.8, icon: "🎨" },
   { id: 2, name: "Anbu Fashions", category: "Fashion & Clothing", rating: 4.6, icon: "👗" },
@@ -69,7 +70,7 @@ function App() {
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   useEffect(() => {
-    fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/products")
+    fetch("http://localhost:5000/api/products")
       .then((response) => response.json())
       .then((data) => {
         const formattedProducts = data.map((product) => ({ ...product, id: product._id }));
@@ -79,6 +80,7 @@ function App() {
   }, []);
 
   const authHeaders = () => {
+
     const token = localStorage.getItem("nammamart_token");
     return {
       "Content-Type": "application/json",
@@ -88,7 +90,7 @@ function App() {
 
   const loadMyProducts = async () => {
     try {
-      const r = await fetch("https://nammamart-tau.vercel.app", { headers: authHeaders() });
+      const r = await fetch("http://localhost:5000/api/products/seller/my", { headers: authHeaders() });
       if (r.ok) {
         const d = await r.json();
         setSellerProducts(d.map((p) => ({ ...p, id: p._id })));
@@ -98,7 +100,7 @@ function App() {
 
   const loadOrders = async () => {
     try {
-      const ep = userRole === "Seller" ? "https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/orders/seller" : "https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/orders/mine";
+      const ep = userRole === "Seller" ? "http://localhost:5000/api/orders/seller" : "http://localhost:5000/api/orders/mine";
       const r = await fetch(ep, { headers: authHeaders() });
       if (r.ok) {
         const d = await r.json();
@@ -242,22 +244,22 @@ function App() {
   };
 
   const editSellerProduct = (id) => { const p=sellerProducts.find(x=>x.id===id); if(!p)return;setEditingProductId(id);setProductName(p.name);setProductPrice(p.price);setProductCategory(p.category);setProductShop(p.shop);setShowMyProducts(false);setShowAddProduct(true); };
-  const deleteSellerProduct = async (id) => { if(!window.confirm("Are you sure you want to delete this product?"))return;try{const r=await fetch(`https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/products/${id}`,{method:"DELETE",headers:authHeaders()});const d=await r.json();if(!r.ok)throw new Error(d.message);setSellerProducts(x=>x.filter(p=>p.id!==id));setProducts(x=>x.filter(p=>p.id!==id));alert("Product deleted successfully! 🗑️");}catch(e){alert(`Failed to delete product: ${e.message}`);} };
+  const deleteSellerProduct = async (id) => { if(!window.confirm("Are you sure you want to delete this product?"))return;try{const r=await fetch(`http://localhost:5000/api/products/${id}`,{method:"DELETE",headers:authHeaders()});const d=await r.json();if(!r.ok)throw new Error(d.message);setSellerProducts(x=>x.filter(p=>p.id!==id));setProducts(x=>x.filter(p=>p.id!==id));alert("Product deleted successfully! 🗑️");}catch(e){alert(`Failed to delete product: ${e.message}`);} };
   const handleSaveProduct = async () => { if(!productName.trim()||!productPrice||!productCategory.trim()||!productShop.trim()){alert("Please fill all product details.");return;}
-  const data={name:productName.trim(),price:Number(productPrice), stock:Number(productStock),rating:5,shop:productShop.trim(),image:"🛍️",category:productCategory.trim()};try{const url=editingProductId?`https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/products/${editingProductId}`:"https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/products";const r=await fetch(url,{method:editingProductId?"PUT":"POST",headers:authHeaders(),body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw new Error(d.message);const p={...d,id:d._id};if(editingProductId){setProducts(x=>x.map(a=>a.id===editingProductId?p:a));setSellerProducts(x=>x.map(a=>a.id===editingProductId?p:a));alert("Product updated successfully! ✨");}else{setProducts(x=>[p,...x]);setSellerProducts(x=>[p,...x]);alert("Product added successfully! 🎉");}resetProductForm();setShowAddProduct(false);setShowSellerDashboard(true);}catch(e){alert(`Failed to save product: ${e.message}`);} };
+  const data={name:productName.trim(),price:Number(productPrice), stock:Number(productStock),rating:5,shop:productShop.trim(),image:"🛍️",category:productCategory.trim()};try{const url=editingProductId?`http://localhost:5000/api/products/${editingProductId}`:"http://localhost:5000/api/products";const r=await fetch(url,{method:editingProductId?"PUT":"POST",headers:authHeaders(),body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw new Error(d.message);const p={...d,id:d._id};if(editingProductId){setProducts(x=>x.map(a=>a.id===editingProductId?p:a));setSellerProducts(x=>x.map(a=>a.id===editingProductId?p:a));alert("Product updated successfully! ✨");}else{setProducts(x=>[p,...x]);setSellerProducts(x=>[p,...x]);alert("Product added successfully! 🎉");}resetProductForm();setShowAddProduct(false);setShowSellerDashboard(true);}catch(e){alert(`Failed to save product: ${e.message}`);} };
 
-  const handleSignup = async () => { if(!selectedRole){alert("Please select Customer or Seller.");return;} if(!signupName.trim()||!signupEmail.trim()||!signupPassword){alert("Please fill all signup details.");return;} try{const r=await fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/auth/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:signupName,email:signupEmail,password:signupPassword,role:selectedRole})});const d=await r.json();if(!r.ok)throw new Error(d.message);localStorage.setItem("nammamart_token",d.token);localStorage.setItem("nammamart_user",JSON.stringify(d.user));setIsLoggedIn(true);setUserRole(d.user.role);setCurrentUser({name:d.user.name,email:d.user.email,phone:d.user.phone||"",address:d.user.address||""});setShowSignup(false);setSignupName("");setSignupEmail("");setSignupPassword("");setSelectedRole("");alert("Account created successfully! 🎉");if(d.user.role==="Seller")setShowSellerDashboard(true);else setShowCustomerDashboard(true);}catch(e){alert(`Signup failed: ${e.message}`);} };
+  const handleSignup = async () => { if(!selectedRole){alert("Please select Customer or Seller.");return;} if(!signupName.trim()||!signupEmail.trim()||!signupPassword){alert("Please fill all signup details.");return;} try{const r=await fetch("http://localhost:5000/api/auth/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:signupName,email:signupEmail,password:signupPassword,role:selectedRole})});const d=await r.json();if(!r.ok)throw new Error(d.message);localStorage.setItem("nammamart_token",d.token);localStorage.setItem("nammamart_user",JSON.stringify(d.user));setIsLoggedIn(true);setUserRole(d.user.role);setCurrentUser({name:d.user.name,email:d.user.email,phone:d.user.phone||"",address:d.user.address||""});setShowSignup(false);setSignupName("");setSignupEmail("");setSignupPassword("");setSelectedRole("");alert("Account created successfully! 🎉");if(d.user.role==="Seller")setShowSellerDashboard(true);else setShowCustomerDashboard(true);}catch(e){alert(`Signup failed: ${e.message}`);} };
 
-  const handleLogin = async () => { if(!loginEmail.trim()||!loginPassword){alert("Please enter email and password.");return;} if(!selectedRole){alert("Please select Customer or Seller.");return;} try{const r=await fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:loginEmail,password:loginPassword,role:selectedRole})});const d=await r.json();if(!r.ok)throw new Error(d.message);localStorage.setItem("nammamart_token",d.token);localStorage.setItem("nammamart_user",JSON.stringify(d.user));setIsLoggedIn(true);setUserRole(d.user.role);setCurrentUser({name:d.user.name,email:d.user.email,phone:d.user.phone||"",address:d.user.address||""});setShowLogin(false);setLoginEmail("");setLoginPassword("");setSelectedRole("");alert("Login successful! 🔐");if(d.user.role==="Seller")setShowSellerDashboard(true);else setShowCustomerDashboard(true);}catch(e){alert(`Login failed: ${e.message}`);} };
+  const handleLogin = async () => { if(!loginEmail.trim()||!loginPassword){alert("Please enter email and password.");return;} if(!selectedRole){alert("Please select Customer or Seller.");return;} try{const r=await fetch("http://localhost:5000/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:loginEmail,password:loginPassword,role:selectedRole})});const d=await r.json();if(!r.ok)throw new Error(d.message);localStorage.setItem("nammamart_token",d.token);localStorage.setItem("nammamart_user",JSON.stringify(d.user));setIsLoggedIn(true);setUserRole(d.user.role);setCurrentUser({name:d.user.name,email:d.user.email,phone:d.user.phone||"",address:d.user.address||""});setShowLogin(false);setLoginEmail("");setLoginPassword("");setSelectedRole("");alert("Login successful! 🔐");if(d.user.role==="Seller")setShowSellerDashboard(true);else setShowCustomerDashboard(true);}catch(e){alert(`Login failed: ${e.message}`);} };
 
   const logout = () => {localStorage.removeItem("nammamart_token");localStorage.removeItem("nammamart_user");setIsLoggedIn(false);setUserRole("");setCurrentUser(emptyProfile);setOrders([]);setSellerProducts([]);closeAllPages();alert("Logged out successfully.");};
 
-  const placeOrder = async () => { if(!customerName.trim()||!customerPhone.trim()||!customerAddress.trim()){alert("Please fill all delivery details.");return;}if(!cart.length){alert("Your cart is empty.");return;}if(!isLoggedIn||userRole!=="Customer"){alert("Please login as a Customer before placing an order.");setShowCheckout(false);setShowLogin(true);return;}try{const r=await fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/orders",{method:"POST",headers:authHeaders(),body:JSON.stringify({customerName,customerPhone,customerAddress,products:cart.map(i=>({productId:i.id,name:i.name,price:i.price,quantity:i.quantity||1,shop:i.shop})),total:cartTotal})});const d=await r.json();if(!r.ok)throw new Error(d.message);setOrders(x=>[{...d,id:d._id},...x]);setCart([]);setCustomerName("");setCustomerPhone("");setCustomerAddress("");setShowCheckout(false);setOrderPlaced(true);}catch(e){alert(`Order failed: ${e.message}`);} };
-  const updateOrderStatus = async (id,status) => {try{const r=await fetch(`https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/orders/${id}/status`,{method:"PUT",headers:authHeaders(),body:JSON.stringify({status})});const d=await r.json();if(!r.ok)throw new Error(d.message);setOrders(x=>x.map(o=>o.id===id?{...o,status:d.status}:o));}catch(e){alert(e.message);}};
+  const placeOrder = async () => { if(!customerName.trim()||!customerPhone.trim()||!customerAddress.trim()){alert("Please fill all delivery details.");return;}if(!cart.length){alert("Your cart is empty.");return;}if(!isLoggedIn||userRole!=="Customer"){alert("Please login as a Customer before placing an order.");setShowCheckout(false);setShowLogin(true);return;}try{const r=await fetch("http://localhost:5000/api/orders",{method:"POST",headers:authHeaders(),body:JSON.stringify({customerName,customerPhone,customerAddress,products:cart.map(i=>({productId:i.id,name:i.name,price:i.price,quantity:i.quantity||1,shop:i.shop})),total:cartTotal})});const d=await r.json();if(!r.ok)throw new Error(d.message);setOrders(x=>[{...d,id:d._id},...x]);setCart([]);setCustomerName("");setCustomerPhone("");setCustomerAddress("");setShowCheckout(false);setOrderPlaced(true);}catch(e){alert(`Order failed: ${e.message}`);} };
+  const updateOrderStatus = async (id,status) => {try{const r=await fetch(`http://localhost:5000/api/orders/${id}/status`,{method:"PUT",headers:authHeaders(),body:JSON.stringify({status})});const d=await r.json();if(!r.ok)throw new Error(d.message);setOrders(x=>x.map(o=>o.id===id?{...o,status:d.status}:o));}catch(e){alert(e.message);}};
   const cancelOrder = async (id) => {
   try {
     const r = await fetch(
-      `https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/orders/${id}/cancel`,
+      `http://localhost:5000/api/orders/${id}/cancel`,
       {
         method: "PUT",
         headers: authHeaders(),
@@ -502,7 +504,7 @@ function App() {
 
           <button
             className="primary-btn"
-            onClick={async () => { try { const r=await fetch("https://nammamart-hq2xawu3o-subalakshmi-m.vercel.app/api/users/me",{method:"PUT",headers:authHeaders(),body:JSON.stringify(currentUser)});const d=await r.json();if(!r.ok)throw new Error(d.message);const u=d.user;setCurrentUser({name:u.name,email:u.email,phone:u.phone||"",address:u.address||""});localStorage.setItem("nammamart_user",JSON.stringify(u));alert("Profile updated successfully! ✨");setShowCustomerProfile(false);setShowCustomerDashboard(true);}catch(e){alert(`Profile update failed: ${e.message}`);}}}
+            onClick={async () => { try { const r=await fetch("http://localhost:5000/api/users/me",{method:"PUT",headers:authHeaders(),body:JSON.stringify(currentUser)});const d=await r.json();if(!r.ok)throw new Error(d.message);const u=d.user;setCurrentUser({name:u.name,email:u.email,phone:u.phone||"",address:u.address||""});localStorage.setItem("nammamart_user",JSON.stringify(u));alert("Profile updated successfully! ✨");setShowCustomerProfile(false);setShowCustomerDashboard(true);}catch(e){alert(`Profile update failed: ${e.message}`);}}}
           >
             Save Profile
           </button>

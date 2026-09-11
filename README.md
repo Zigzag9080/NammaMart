@@ -53,3 +53,19 @@ NammaMart/
 │   └── middleware/
 │
 └── README.md
+## Screenshots
+
+### Home Page
+![Home Page](screenshots/home.png)
+
+### Seller Dashboard
+![Seller Dashboard](screenshots/seller-dashboard.png)
+
+### Customer Dashboard
+![Customer Dashboard](screenshots/customer-dashboard.png)
+
+### Products
+![Products](screenshots/products.png)
+
+### Shops
+![Shops](screenshots/shops.png)
